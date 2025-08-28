@@ -1,78 +1,75 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-interface Job {
+export interface QuantumJob {
   id: string;
-  status: 'running' | 'queued' | 'completed' | 'error' | 'cancelled';
+  name: string;
+  status: 'running' | 'queued' | 'completed' | 'failed';
   backend: string;
-  qubits: number;
   shots: number;
-  createdAt: string;
-  executionTime?: number;
+  qubits: number;
+  submittedAt: string;
+  estimatedCompletion?: string;
+  progress?: number;
+  user: string;
+  circuit: string;
 }
 
-// Mock data generator - in a real app, this would call IBM Quantum API
-const generateMockJob = (): Job => {
-  const backends = ['ibm_brisbane', 'ibm_kyoto', 'ibm_osaka', 'ibm_quebec', 'simulator_mps'];
-  const statuses: Job['status'][] = ['running', 'queued', 'completed', 'error', 'cancelled'];
-  
-  return {
-    id: Math.random().toString(36).substr(2, 9),
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    backend: backends[Math.floor(Math.random() * backends.length)],
-    qubits: Math.floor(Math.random() * 127) + 1,
-    shots: Math.floor(Math.random() * 8192) + 1024,
-    createdAt: new Date(Date.now() - Math.random() * 3600000).toISOString(),
-    executionTime: Math.random() > 0.5 ? Math.floor(Math.random() * 300) + 10 : undefined
-  };
-};
+export interface QuantumStats {
+  total: number;
+  running: number;
+  queued: number;
+  completed: number;
+  failed: number;
+}
 
 export const useQuantumJobs = () => {
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<QuantumJob[]>([]);
+  const [stats, setStats] = useState<QuantumStats>({
+    total: 0,
+    running: 0,
+    queued: 0,
+    completed: 0,
+    failed: 0
+  });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize with mock data
-  useEffect(() => {
-    const initialJobs = Array.from({ length: 12 }, generateMockJob);
-    setJobs(initialJobs);
-    setIsLoading(false);
-  }, []);
+  const fetchJobs = async () => {
+    try {
+      console.log('Fetching quantum jobs from edge function...');
+      
+      const { data, error } = await supabase.functions.invoke('fetch-quantum-jobs');
+      
+      if (error) {
+        console.error('Error calling edge function:', error);
+        return;
+      }
 
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setJobs(prevJobs => {
-        // Sometimes add a new job
-        if (Math.random() > 0.7) {
-          const newJob = generateMockJob();
-          return [newJob, ...prevJobs.slice(0, 11)];
-        }
-        
-        // Sometimes update existing job status
-        return prevJobs.map(job => {
-          if (job.status === 'queued' && Math.random() > 0.8) {
-            return { ...job, status: 'running' as const };
-          }
-          if (job.status === 'running' && Math.random() > 0.9) {
-            return { 
-              ...job, 
-              status: 'completed' as const, 
-              executionTime: Math.floor(Math.random() * 300) + 10 
-            };
-          }
-          return job;
-        });
-      });
-    }, 3000);
+      if (data?.jobs && data?.stats) {
+        console.log('Successfully fetched jobs:', data.jobs.length);
+        setJobs(data.jobs);
+        setStats(data.stats);
+      }
+    } catch (error) {
+      console.error('Error fetching quantum jobs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    fetchJobs();
+    
+    // Refresh jobs every 30 seconds for real-time feel
+    const interval = setInterval(fetchJobs, 30000);
+    
     return () => clearInterval(interval);
   }, []);
 
-  const stats = {
-    total: jobs.length,
-    running: jobs.filter(j => j.status === 'running').length,
-    queued: jobs.filter(j => j.status === 'queued').length,
-    completed: jobs.filter(j => j.status === 'completed').length
+  return {
+    jobs,
+    stats,
+    isLoading,
+    refreshJobs: fetchJobs
   };
-
-  return { jobs, isLoading, stats };
 };
