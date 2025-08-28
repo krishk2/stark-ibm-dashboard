@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					glow: 'hsl(var(--primary-glow))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -52,6 +53,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				quantum: {
+					running: 'hsl(var(--quantum-running))',
+					queued: 'hsl(var(--quantum-queued))',
+					completed: 'hsl(var(--quantum-completed))',
+					error: 'hsl(var(--quantum-error))',
+					cancelled: 'hsl(var(--quantum-cancelled))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -67,6 +75,14 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			backgroundImage: {
+				'gradient-quantum': 'var(--gradient-quantum)',
+				'gradient-glow': 'var(--gradient-glow)'
+			},
+			boxShadow: {
+				'quantum': 'var(--shadow-quantum)',
+				'glow': 'var(--shadow-glow)'
 			},
 			keyframes: {
 				'accordion-down': {
