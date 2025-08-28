@@ -1,10 +1,64 @@
-import { Activity, Clock, Cpu, Zap } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Activity, Clock, Cpu, Zap, LogOut, User } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
 import { JobCard } from "@/components/JobCard";
 import { StatsCard } from "@/components/StatsCard";
 import { useQuantumJobs } from "@/hooks/useQuantumJobs";
+import { Button } from "@/components/ui/button";
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 const Index = () => {
   const { jobs, isLoading, stats } = useQuantumJobs();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Redirect to auth if not logged in
+        if (!session?.user) {
+          navigate('/auth');
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      // Redirect to auth if not logged in
+      if (!session?.user) {
+        navigate('/auth');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  // Don't render the dashboard if user is not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please sign in to access the dashboard</h1>
+          <Link to="/auth">
+            <Button>Go to Login</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -22,13 +76,31 @@ const Index = () => {
       {/* Header */}
       <header className="border-b border-border/50 bg-card/30 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-gradient-quantum rounded-lg flex items-center justify-center shadow-glow">
-              <Cpu className="h-6 w-6 text-primary-foreground" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-gradient-quantum rounded-lg flex items-center justify-center shadow-glow">
+                <Cpu className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">IBM Quantum Dashboard</h1>
+                <p className="text-sm text-muted-foreground">Live quantum computing jobs</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">IBM Quantum Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Live quantum computing jobs</p>
+            
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User className="w-4 h-4" />
+                {user.email}
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSignOut}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </Button>
             </div>
           </div>
         </div>

@@ -1,0 +1,2 @@
+-- Enable auth for the application
+-- No additional tables needed unless user confirms they want profile data
