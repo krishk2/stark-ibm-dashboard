@@ -85,9 +85,9 @@ export const JobCard = ({ job, onClick }: JobCardProps) => {
               <span className="text-muted-foreground">Progress:</span>
               <span className="font-medium">{job.progress}%</span>
             </div>
-            <div className="w-full bg-secondary rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-3 border border-border/30">
               <div 
-                className="bg-quantum-running h-2 rounded-full transition-all duration-300" 
+                className="bg-gradient-to-r from-quantum-running to-primary-glow h-full rounded-full transition-all duration-500 shadow-glow" 
                 style={{ width: `${job.progress}%` }}
               ></div>
             </div>

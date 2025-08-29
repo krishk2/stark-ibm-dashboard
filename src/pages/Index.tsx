@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Activity, Clock, Cpu, Zap, LogOut, User } from "lucide-react";
+import { Activity, Clock, Cpu, Zap, LogOut, User, Filter } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { JobCard } from "@/components/JobCard";
 import { JobDetailsModal } from "@/components/JobDetailsModal";
@@ -8,6 +8,7 @@ import { StatsCard } from "@/components/StatsCard";
 import { useQuantumJobs } from "@/hooks/useQuantumJobs";
 import { QuantumJob } from "@/hooks/useQuantumJobs";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 const Index = () => {
@@ -16,6 +17,7 @@ const Index = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [selectedJob, setSelectedJob] = useState<QuantumJob | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,6 +61,11 @@ const Index = () => {
     setIsModalOpen(false);
     setSelectedJob(null);
   };
+
+  const filteredJobs = jobs.filter(job => {
+    if (statusFilter === 'all') return true;
+    return job.status === statusFilter;
+  });
 
   // Don't render the dashboard if user is not authenticated
   if (!user) {
@@ -152,17 +159,40 @@ const Index = () => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-foreground">Recent Jobs</h2>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-quantum-running rounded-full animate-pulse"></div>
-              <span className="text-sm text-muted-foreground">Live updates</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Jobs</SelectItem>
+                    <SelectItem value="running">Running</SelectItem>
+                    <SelectItem value="queued">Queued</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-quantum-running rounded-full animate-pulse"></div>
+                <span className="text-sm text-muted-foreground">Live updates</span>
+              </div>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.map((job) => (
+            {filteredJobs.map((job) => (
               <JobCard key={job.id} job={job} onClick={() => handleJobClick(job)} />
             ))}
           </div>
+          
+          {filteredJobs.length === 0 && !isLoading && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No jobs found with the selected filter.</p>
+            </div>
+          )}
         </div>
 
       </main>

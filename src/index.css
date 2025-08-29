@@ -74,50 +74,50 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Quantum Dashboard Dark Theme */
-    --background: 220 39% 11%;
-    --foreground: 210 40% 98%;
+    /* Quantum Dashboard Dark Purple Theme */
+    --background: 265 20% 8%;
+    --foreground: 280 15% 92%;
 
-    --card: 220 27% 18%;
-    --card-foreground: 210 40% 98%;
+    --card: 265 25% 12%;
+    --card-foreground: 280 15% 92%;
 
-    --popover: 220 27% 18%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 265 25% 12%;
+    --popover-foreground: 280 15% 92%;
 
-    --primary: 231 70% 65%;
-    --primary-foreground: 220 39% 11%;
-    --primary-glow: 231 70% 75%;
+    --primary: 270 70% 65%;
+    --primary-foreground: 265 20% 8%;
+    --primary-glow: 270 80% 75%;
 
-    --secondary: 220 27% 18%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 265 20% 16%;
+    --secondary-foreground: 280 15% 92%;
 
-    --muted: 220 27% 18%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 265 15% 20%;
+    --muted-foreground: 275 10% 60%;
 
-    --accent: 220 27% 18%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 270 50% 25%;
+    --accent-foreground: 280 15% 92%;
 
-    /* Quantum status colors - dark theme */
-    --quantum-running: 142 70% 45%;
-    --quantum-queued: 45 93% 58%;
-    --quantum-completed: 142 70% 45%;
-    --quantum-error: 0 84% 60%;
-    --quantum-cancelled: 240 4.9% 83.9%;
+    /* Quantum status colors - dark purple theme */
+    --quantum-running: 160 70% 55%;
+    --quantum-queued: 45 85% 65%;
+    --quantum-completed: 120 70% 55%;
+    --quantum-error: 0 80% 65%;
+    --quantum-cancelled: 270 20% 60%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 220 27% 18%;
-    --input: 220 27% 18%;
-    --ring: 231 70% 65%;
+    --border: 265 25% 22%;
+    --input: 265 25% 22%;
+    --ring: 270 70% 65%;
 
-    /* Quantum gradients - dark theme */
-    --gradient-quantum: linear-gradient(135deg, 231 70% 65%, 271 81% 66%);
-    --gradient-glow: linear-gradient(180deg, transparent, 231 70% 65% / 0.1);
+    /* Quantum gradients - dark purple theme */
+    --gradient-quantum: linear-gradient(135deg, 270 70% 65%, 300 80% 70%);
+    --gradient-glow: linear-gradient(180deg, transparent, 270 70% 65% / 0.15);
     
-    /* Quantum shadows - dark theme */
-    --shadow-quantum: 0 4px 32px -4px hsl(231 70% 65% / 0.25);
-    --shadow-glow: 0 0 32px hsl(231 70% 75% / 0.15);
+    /* Quantum shadows - dark purple theme */
+    --shadow-quantum: 0 4px 32px -4px hsl(270 70% 65% / 0.3);
+    --shadow-glow: 0 0 32px hsl(270 80% 75% / 0.2);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
