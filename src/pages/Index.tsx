@@ -3,8 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Activity, Clock, Cpu, Zap, LogOut, User } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { JobCard } from "@/components/JobCard";
+import { JobDetailsModal } from "@/components/JobDetailsModal";
 import { StatsCard } from "@/components/StatsCard";
 import { useQuantumJobs } from "@/hooks/useQuantumJobs";
+import { QuantumJob } from "@/hooks/useQuantumJobs";
 import { Button } from "@/components/ui/button";
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
@@ -12,6 +14,8 @@ const Index = () => {
   const { jobs, isLoading, stats } = useQuantumJobs();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [selectedJob, setSelectedJob] = useState<QuantumJob | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,6 +48,16 @@ const Index = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+  };
+
+  const handleJobClick = (job: QuantumJob) => {
+    setSelectedJob(job);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedJob(null);
   };
 
   // Don't render the dashboard if user is not authenticated
@@ -146,11 +160,19 @@ const Index = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobCard key={job.id} job={job} onClick={() => handleJobClick(job)} />
             ))}
           </div>
         </div>
+
       </main>
+
+      {/* Job Details Modal */}
+      <JobDetailsModal
+        job={selectedJob}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

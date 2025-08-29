@@ -5,6 +5,7 @@ import { QuantumJob } from "@/hooks/useQuantumJobs";
 
 interface JobCardProps {
   job: QuantumJob;
+  onClick?: () => void;
 }
 
 const statusIcons = {
@@ -21,7 +22,7 @@ const statusColors = {
   failed: "bg-quantum-error/10 text-quantum-error border-quantum-error/20"
 };
 
-export const JobCard = ({ job }: JobCardProps) => {
+export const JobCard = ({ job, onClick }: JobCardProps) => {
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString();
   };
@@ -31,7 +32,10 @@ export const JobCard = ({ job }: JobCardProps) => {
   };
 
   return (
-    <Card className="hover:shadow-quantum transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
+    <Card 
+      className="hover:shadow-quantum transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm cursor-pointer hover:scale-[1.02]"
+      onClick={onClick}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">
