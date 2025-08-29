@@ -103,7 +103,7 @@ const Index = () => {
                 <Cpu className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">IBM Quantum Dashboard</h1>
+                <h1 className="text-2xl font-bold text-foreground">QuantuSight</h1>
                 <p className="text-sm text-muted-foreground">Live quantum computing jobs</p>
               </div>
             </div>
