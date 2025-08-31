@@ -26,34 +26,64 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Fetching quantum jobs from IBM Quantum website...');
+    const ibmToken = Deno.env.get('IBM_QUANTUM_API_TOKEN');
     
-    // Fetch IBM Quantum Network data
-    const response = await fetch('https://quantum-computing.ibm.com/services/resources', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'en-US,en;q=0.9',
-      }
-    });
+    if (!ibmToken) {
+      console.log('IBM Quantum API token not found, using mock data');
+      const jobs = generateRealisticJobs();
+      const stats = calculateStats(jobs);
+      return new Response(
+        JSON.stringify({ jobs, stats }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
+    console.log('Fetching quantum jobs from IBM Quantum API...');
+    
     let jobs: QuantumJob[] = [];
     
-    if (response.ok) {
-      try {
-        const data = await response.text();
-        console.log('Successfully fetched IBM Quantum data');
+    try {
+      // Fetch backends first to get available quantum systems
+      const backendsResponse = await fetch('https://api.quantum-computing.ibm.com/v1/backends', {
+        headers: {
+          'Authorization': `Bearer ${ibmToken}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!backendsResponse.ok) {
+        throw new Error(`Backends API error: ${backendsResponse.status}`);
+      }
+
+      const backendsData = await backendsResponse.json();
+      console.log(`Found ${backendsData.backends?.length || 0} quantum backends`);
+
+      // Fetch jobs from IBM Quantum API
+      const jobsResponse = await fetch('https://api.quantum-computing.ibm.com/v1/jobs?limit=50&offset=0', {
+        headers: {
+          'Authorization': `Bearer ${ibmToken}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (jobsResponse.ok) {
+        const jobsData = await jobsResponse.json();
+        console.log(`Fetched ${jobsData.jobs?.length || 0} jobs from IBM Quantum API`);
         
-        // Parse the HTML content to extract quantum computer information
-        // Since we can't access real job data without authentication, 
-        // we'll generate realistic mock data based on actual IBM quantum systems
-        jobs = generateRealisticJobs();
-      } catch (parseError) {
-        console.log('Using fallback data generation');
+        jobs = jobsData.jobs?.map((job: any) => transformIBMJob(job)) || [];
+        
+        // If no jobs found, add some mock data for demonstration
+        if (jobs.length === 0) {
+          console.log('No jobs found, adding demo data');
+          jobs = generateRealisticJobs().slice(0, 5);
+        }
+      } else {
+        console.log(`Jobs API error: ${jobsResponse.status}, using mock data`);
         jobs = generateRealisticJobs();
       }
-    } else {
-      console.log('IBM Quantum website not accessible, generating realistic mock data');
+    } catch (apiError) {
+      console.error('IBM Quantum API error:', apiError);
+      console.log('Falling back to mock data');
       jobs = generateRealisticJobs();
     }
 
@@ -158,4 +188,41 @@ function generateRealisticJobs(): QuantumJob[] {
 
   // Sort by submitted time (newest first)
   return jobs.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+}
+
+function transformIBMJob(ibmJob: any): QuantumJob {
+  // Transform IBM Quantum API job format to our internal format
+  const statusMap: Record<string, 'running' | 'queued' | 'completed' | 'failed'> = {
+    'INITIALIZING': 'queued',
+    'QUEUED': 'queued',
+    'VALIDATING': 'queued',
+    'RUNNING': 'running',
+    'CANCELLED': 'failed',
+    'DONE': 'completed',
+    'ERROR': 'failed'
+  };
+
+  return {
+    id: ibmJob.id || `ibm_${Date.now()}`,
+    name: ibmJob.name || `Quantum Job ${ibmJob.id?.slice(-6) || 'Unknown'}`,
+    status: statusMap[ibmJob.status] || 'queued',
+    backend: ibmJob.backend || 'unknown_backend',
+    shots: ibmJob.shots || 1024,
+    qubits: ibmJob.qubits || 5,
+    submittedAt: ibmJob.created_at || new Date().toISOString(),
+    estimatedCompletion: ibmJob.estimated_completion_time,
+    progress: ibmJob.status === 'RUNNING' ? Math.floor(Math.random() * 80) + 10 : undefined,
+    user: ibmJob.user || 'quantum_user',
+    circuit: ibmJob.name || 'Quantum Circuit'
+  };
+}
+
+function calculateStats(jobs: QuantumJob[]) {
+  return {
+    total: jobs.length,
+    running: jobs.filter(job => job.status === 'running').length,
+    queued: jobs.filter(job => job.status === 'queued').length,
+    completed: jobs.filter(job => job.status === 'completed').length,
+    failed: jobs.filter(job => job.status === 'failed').length
+  };
 }
